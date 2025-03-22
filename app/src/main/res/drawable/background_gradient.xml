@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Primer degradado: Vertical -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="@color/crudoOscuro"
+                android:centerColor="@color/crudo"
+                android:endColor="@color/crudoOscuro"
+                android:angle="90" />
+        </shape>
+    </item>
+</layer-list>
