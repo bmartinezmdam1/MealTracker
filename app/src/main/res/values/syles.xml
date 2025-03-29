@@ -1,0 +1,10 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Tema personalizado basado en AppCompat -->
+    <style name="Theme.MealTracker" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Personaliza los colores aquí -->
+        <item name="colorPrimary">@color/verdeMenta</item>
+        <item name="colorPrimaryDark">@color/verdeMentaOscuro</item>
+        <item name="colorAccent">@color/rojoSalmon</item>
+        <item name="android:windowBackground">@color/crudoOscuro</item>
+    </style>
+</resources>

@@ -16,4 +16,9 @@
     <color name="crudo">#FFF8F0</color>#fffdfa
     <color name="crudoClaro">#f9f5f2</color>
     <color name="crudoOscuro">#fae4d2</color>
+    <color name="grisMarengo">#2C2E3E</color>
+    <color name="verdeMenta">#B4F4E0</color>
+    <color name="rojoSalmon">#FF4C60</color>
+    <color name="verdeMentaClaro">#D9F6EC</color>
+    <color name="verdeMentaOscuro">#92B4A3</color>
 </resources>

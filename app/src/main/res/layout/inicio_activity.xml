@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".Activities.InicioActivity">
+
+    <!-- Resumen de Calorías -->
+    <TextView
+        android:id="@+id/tv_calories_summary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Calorías: 0 / 2000 (Restantes: 2000)"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:padding="8dp" />
+
+    <!-- RecyclerView para la lista de comidas -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_food_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+    <!-- Botón para añadir comida -->
+    <Button
+        android:id="@+id/btn_add_food"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Añadir Comida"
+        android:layout_marginTop="8dp"
+        tools:ignore="InvalidId" />
+</LinearLayout>

@@ -4,16 +4,26 @@
     package="com.example.mealtracker"
     tools:ignore="MissingLeanbackLauncher">
 
+    <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="33" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <!-- Features -->
     <uses-feature
         android:name="android.hardware.touchscreen"
         android:required="false" />
     <uses-feature
         android:name="android.software.leanback"
-        android:required="true" />
+        android:required="false" />
+
+    <!-- Remove this if not a TV app -->
+    <!-- <uses-feature
+        android:name="android.software.leanback"
+        android:required="true" /> -->
 
     <application
         android:allowBackup="true"
@@ -25,17 +35,33 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MealTracker"
         tools:targetApi="31">
+
+        <!-- Main Activity -->
         <activity
-            android:name=".MainActivity"
+            android:name=".Activities.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.MealTracker">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
+        <activity
+            android:name=".Activities.RegistrarseActivity"
+            android:exported="true"
+            tools:ignore="MissingClass">
+        </activity>
+        <activity
+            android:name=".Activities.InicioActivity"
+            android:exported="true"
+            tools:ignore="Instantiatable,MissingClass">
+        </activity>
+        <activity
+            android:name=".Activities.AnadirComida"
+            android:exported="true"
+            tools:ignore="Instantiatable,MissingClass">
+        </activity>
 
+    </application>
 </manifest>

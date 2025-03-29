@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/et_food_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nombre de la comida" />
+
+    <EditText
+        android:id="@+id/et_calories"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Calorías"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/et_protein"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Proteínas (g)"
+        android:inputType="numberDecimal" />
+
+    <EditText
+        android:id="@+id/et_carbs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Carbohidratos (g)"
+        android:inputType="numberDecimal" />
+
+    <EditText
+        android:id="@+id/et_fats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Grasas (g)"
+        android:inputType="numberDecimal" />
+
+    <EditText
+        android:id="@+id/et_vitamin_a"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Vitamina A (mg)"
+        android:inputType="numberDecimal" />
+
+    <EditText
+        android:id="@+id/et_vitamin_c"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Vitamina C (mg)"
+        android:inputType="numberDecimal" />
+
+    <Button
+        android:id="@+id/btn_save"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Guardar" />
+
+</LinearLayout>
