@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Gráfico circular (tipo queso/pastel) -->
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pieChartMacros"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            tools:ignore="MissingClass" />
+
+        <!-- PROTEÍNAS -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Proteínas"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"/>
+
+        <com.github.mikephil.charting.charts.HorizontalBarChart
+            android:id="@+id/barChartProtein"
+            android:layout_width="match_parent"
+            android:layout_height="100dp" />
+
+        <TextView
+            android:id="@+id/textProtein"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp" />
+
+        <!-- CARBOHIDRATOS -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Carbohidratos"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"/>
+
+        <com.github.mikephil.charting.charts.HorizontalBarChart
+            android:id="@+id/barChartCarbs"
+            android:layout_width="match_parent"
+            android:layout_height="100dp" />
+
+        <TextView
+            android:id="@+id/textCarbs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp" />
+
+        <!-- GRASAS -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Grasas"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"/>
+
+        <com.github.mikephil.charting.charts.HorizontalBarChart
+            android:id="@+id/barChartFats"
+            android:layout_width="match_parent"
+            android:layout_height="100dp" />
+
+        <TextView
+            android:id="@+id/textFats"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp" />
+
+        <!-- CALORÍAS -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Calorías"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"/>
+
+        <com.github.mikephil.charting.charts.HorizontalBarChart
+            android:id="@+id/barChartCalories"
+            android:layout_width="match_parent"
+            android:layout_height="100dp" />
+
+        <TextView
+            android:id="@+id/textCalories"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp" />
+
+    </LinearLayout>
+</ScrollView>

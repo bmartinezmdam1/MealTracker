@@ -1,5 +1,6 @@
 package com.example.mealtracker.Activities
 
+import FoodItem
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -25,7 +26,7 @@ class InicioActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.inicio_activity)
 
-        // Buscar las vistas con findViewById
+        // Referencias a vistas
         rvFoodList = findViewById(R.id.rv_food_list)
         btnAddFood = findViewById(R.id.btn_add_food)
         tvCaloriesSummary = findViewById(R.id.tv_calories_summary)
@@ -35,18 +36,27 @@ class InicioActivity : AppCompatActivity() {
         rvFoodList.layoutManager = LinearLayoutManager(this)
         rvFoodList.adapter = foodAdapter
 
-        // Observar cambios en la lista de comidas
+        // 🔥 Observar cambios en la lista de comidas para actualizar el RecyclerView y las calorías
         foodViewModel.foodList.observe(this) { foodItems ->
             foodAdapter.updateData(foodItems)
             updateCalorieSummary(foodItems)
         }
 
-        // Configurar botón para añadir comida
+        // Botón para abrir la pantalla de añadir comida
         btnAddFood.setOnClickListener {
             val intent = Intent(this, AnadirComida::class.java)
             startActivityForResult(intent, REQUEST_CODE_ADD_FOOD)
         }
+
+        // (Opcional) Mostrar detalle al tocar resumen
+        tvCaloriesSummary.setOnClickListener {
+            val intent = Intent(this, NutrientesDiarios::class.java)
+            val foodList = foodViewModel.foodList.value ?: arrayListOf()
+            intent.putParcelableArrayListExtra("food_list", ArrayList(foodList))
+            startActivity(intent)
+        }
     }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -77,3 +87,4 @@ class InicioActivity : AppCompatActivity() {
         private const val REQUEST_CODE_ADD_FOOD = 1
     }
 }
+

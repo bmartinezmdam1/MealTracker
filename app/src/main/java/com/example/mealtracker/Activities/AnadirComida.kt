@@ -27,7 +27,7 @@ class AnadirComida: AppCompatActivity() {
             val resultIntent = Intent().apply {
                 putExtra("nombre", etFoodName.text.toString())
                 putExtra("calorias", etCalories.text.toString())
-                putExtra("proteina", etProtein.text.toString())
+                putExtra("proteinas", etProtein.text.toString())
                 putExtra("carbohidratos", etCarbs.text.toString())
                 putExtra("grasas", etFats.text.toString())
                 putExtra("vitamina_a", etVitaminA.text.toString())

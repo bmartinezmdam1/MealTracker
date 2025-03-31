@@ -56,14 +56,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun comprobarUsuario(email: String, password: String) {
-        db.collection("users")
-            .whereEqualTo("email", email)
-            .get()
-            .addOnSuccessListener { documents ->
-                if (!documents.isEmpty) {
-                    val user = documents.first()
-                    val dbPassword = user.getString("password")
-
+        db.collection("users").document(email).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val dbPassword = document.getString("password")
                     if (dbPassword == password) {
                         Toast.makeText(this, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show()
                         guardarCredencialesLocal(email, password)
@@ -81,7 +77,8 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
-    private fun verificarSesion() {
+
+        private fun verificarSesion() {
         val cursor = localDb.rawQuery("SELECT email, contrasena FROM usuarios", null)
         if (cursor.moveToFirst()) {
             val email = cursor.getString(cursor.getColumnIndexOrThrow("email"))

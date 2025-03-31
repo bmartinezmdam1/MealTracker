@@ -35,4 +35,12 @@
         android:text="Añadir Comida"
         android:layout_marginTop="8dp"
         tools:ignore="InvalidId" />
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?android:attr/windowBackground"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu"
+        app:layout_constraintBottom_toBottomOf="parent" />
 </LinearLayout>

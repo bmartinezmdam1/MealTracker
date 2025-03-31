@@ -1,5 +1,7 @@
-package com.example.mealtracker.Activities
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 data class FoodItem(
     val name: String,
     val calories: Int,
@@ -8,4 +10,4 @@ data class FoodItem(
     val fats: Int,
     val vitaminA: Int,
     val vitaminC: Int
-)
+) : Parcelable
