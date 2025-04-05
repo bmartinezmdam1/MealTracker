@@ -24,6 +24,7 @@
             android:src="@drawable/meal_tracker" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <!-- Contenido scrollable -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -37,38 +38,51 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="24dp"
-            android:layout_gravity="center_horizontal">
-
-            <TextView
-                android:id="@+id/tv_user_info"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Correo actual:"
-                android:textSize="18sp"
-                android:layout_marginBottom="32dp"/>
+            android:padding="24dp">
 
             <Button
-                android:id="@+id/btn_change_email"
+                android:id="@+id/btn_change_calories"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cambiar correo"
-                android:layout_marginTop="8dp" />
+                android:text="Cambiar calorías" />
 
             <Button
-                android:id="@+id/btn_change_password"
+                android:id="@+id/btn_change_protein"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cambiar contraseña"
-                android:layout_marginTop="8dp" />
+                android:text="Cambiar proteínas" />
+
+            <Button
+                android:id="@+id/btn_change_carbs"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cambiar carbohidratos" />
+
+            <Button
+                android:id="@+id/btn_change_fats"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cambiar grasas" />
+
+            <Button
+                android:id="@+id/btn_change_vitamin_a"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cambiar vitamina A" />
+
+            <Button
+                android:id="@+id/btn_change_vitamin_c"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cambiar vitamina C" />
         </LinearLayout>
     </ScrollView>
 
+    <!-- Barra inferior de navegación -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:menu="@menu/bottom_nav_menu"
-        app:layout_constraintBottom_toBottomOf="parent" />
-
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:menu="@menu/bottom_nav_menu" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -11,6 +11,7 @@
         android:usesPermissionFlags="neverForLocation"
         tools:targetApi="33" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <!-- Features -->
     <uses-feature
@@ -66,6 +67,16 @@
             android:name=".Activities.NutrientesDiarios"
             android:exported="true"
             tools:ignore="Instantiatable,MissingClass">
+        </activity>
+        <activity
+            android:name=".Activities.PerfilActivity"
+            android:exported="true"
+            tools:ignore="Instantiatable,MissingClass">
+        </activity>
+        <activity
+            android:name=".Activities.DietaActivity"
+            android:exported="true"
+            tools:ignore="DuplicateActivity,Instantiatable,MissingClass">
         </activity>
 
     </application>

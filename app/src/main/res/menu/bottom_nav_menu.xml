@@ -8,4 +8,9 @@
             android:id="@+id/page_perfil"
             android:icon="@drawable/profile"
             android:title="Perfil" />
+
+        <item
+            android:id="@+id/cambiar_dieta"
+            android:icon="@drawable/profile"
+            android:title="Cambiar dieta" />
 </menu>
