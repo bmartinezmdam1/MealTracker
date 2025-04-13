@@ -10,6 +10,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
+import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -21,12 +23,11 @@ class InicioActivity : AppCompatActivity() {
 
     private lateinit var foodAdapter: FoodAdapter
     private lateinit var dbHelper: DBHelper
+    private val viewModel: FoodViewModel by viewModels()
 
     private lateinit var rvFoodList: RecyclerView
     private lateinit var btnAddFood: Button
     private lateinit var tvCaloriesSummary: TextView
-
-    private val foodList = mutableListOf<FoodItem>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,11 +40,19 @@ class InicioActivity : AppCompatActivity() {
 
         dbHelper = DBHelper(this)
 
-        foodAdapter = FoodAdapter(emptyList())
+        foodAdapter = FoodAdapter(emptyList()) { selectedFood ->
+            mostrarDialogoBorrar(selectedFood)
+        }
         rvFoodList.layoutManager = LinearLayoutManager(this)
         rvFoodList.adapter = foodAdapter
 
-        updateCalorieSummary()
+        viewModel.foodList.observe(this) {
+            foodAdapter.updateData(it)
+        }
+
+        viewModel.totalCalories.observe(this) {
+            updateCalorieSummary()
+        }
 
         btnAddFood.setOnClickListener {
             val intent = Intent(this, AnadirComida::class.java)
@@ -52,7 +61,7 @@ class InicioActivity : AppCompatActivity() {
 
         tvCaloriesSummary.setOnClickListener {
             val intent = Intent(this, NutrientesDiarios::class.java)
-            intent.putParcelableArrayListExtra("food_list", ArrayList(foodList))
+            intent.putParcelableArrayListExtra("food_list", ArrayList(viewModel.foodList.value ?: listOf()))
             startActivity(intent)
         }
 
@@ -89,19 +98,30 @@ class InicioActivity : AppCompatActivity() {
                     vitaminA = it.getStringExtra("vitamina_a")?.toIntOrNull() ?: 0,
                     vitaminC = it.getStringExtra("vitamina_c")?.toIntOrNull() ?: 0
                 )
-                foodList.add(food)
-                foodAdapter.updateData(foodList)
-                updateCalorieSummary()
+                viewModel.addFood(food)
             }
         }
     }
 
+    private fun mostrarDialogoBorrar(food: FoodItem) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("¿Borrar entrada?")
+            .setMessage("¿Deseas borrar \"${food.name}\"?")
+            .setPositiveButton("Borrar") { dialog, _ ->
+                viewModel.removeFood(food)
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancelar") { dialog, _ ->
+                dialog.dismiss()
+            }
+
+        val dialog = builder.create()
+        dialog.setCanceledOnTouchOutside(true)
+        dialog.show()
+    }
+
     private fun updateCalorieSummary() {
-        val totalCalories = foodList.sumOf { it.calories }
-        val goal = dbHelper.cargarObjetivosNutricionales()
-        val calorieGoal = goal?.calories ?: 2000
-        val remainingCalories = calorieGoal - totalCalories
-        tvCaloriesSummary.text = "Calorías: $totalCalories / $calorieGoal (Restantes: $remainingCalories)"
+        tvCaloriesSummary.text = viewModel.getCaloriesSummary()
     }
 
     @SuppressLint("ScheduleExactAlarm")

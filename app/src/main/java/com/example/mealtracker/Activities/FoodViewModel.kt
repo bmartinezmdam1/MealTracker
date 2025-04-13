@@ -7,15 +7,12 @@ import androidx.lifecycle.ViewModel
 
 class FoodViewModel : ViewModel() {
 
-    // Lista de comidas
-    private val _foodList = MutableLiveData<List<FoodItem>>(emptyList())
-    val foodList: LiveData<List<FoodItem>> get() = _foodList
+    private val _foodList = MutableLiveData<MutableList<FoodItem>>(mutableListOf())
+    val foodList: LiveData<MutableList<FoodItem>> get() = _foodList
 
-    // Calorías totales
     private val _totalCalories = MutableLiveData(0)
     val totalCalories: LiveData<Int> get() = _totalCalories
 
-    // Objetivos nutricionales
     private val _goals = MutableLiveData(
         NutritionGoals(
             calories = 2000,
@@ -28,15 +25,20 @@ class FoodViewModel : ViewModel() {
     )
     val goals: LiveData<NutritionGoals> get() = _goals
 
-    // Agregar comida y actualizar calorías
     fun addFood(food: FoodItem) {
-        val updatedList = _foodList.value?.toMutableList() ?: mutableListOf()
-        updatedList.add(food)
-        _foodList.value = updatedList
-        _totalCalories.value = updatedList.sumOf { it.calories }
+        val list = _foodList.value ?: mutableListOf()
+        list.add(food)
+        _foodList.value = list
+        recalculateCalories()
     }
 
-    // Resumen de calorías
+    fun removeFood(food: FoodItem) {
+        val list = _foodList.value ?: return
+        list.remove(food)
+        _foodList.value = list
+        recalculateCalories()
+    }
+
     fun getCaloriesSummary(): String {
         val consumed = _totalCalories.value ?: 0
         val goal = _goals.value?.calories ?: 2000
@@ -44,7 +46,6 @@ class FoodViewModel : ViewModel() {
         return "Calorías: $consumed / $goal (Restantes: $remaining)"
     }
 
-    // Actualizar macros → recalcular calorías
     fun updateMacros(protein: Int, carbs: Int, fats: Int, vitaminA: Int, vitaminC: Int) {
         val calories = protein * 4 + carbs * 4 + fats * 9
         _goals.value = NutritionGoals(
@@ -57,10 +58,8 @@ class FoodViewModel : ViewModel() {
         )
     }
 
-    // Actualizar calorías → recalcular macros en proporción
     fun updateCalories(newCalories: Int) {
         val current = _goals.value ?: return
-
         val currentCal = current.protein * 4 + current.carbs * 4 + current.fats * 9
         if (currentCal == 0) return
 
@@ -80,5 +79,10 @@ class FoodViewModel : ViewModel() {
             vitaminA = current.vitaminA,
             vitaminC = current.vitaminC
         )
+    }
+
+    private fun recalculateCalories() {
+        val list = _foodList.value ?: return
+        _totalCalories.value = list.sumOf { it.calories }
     }
 }

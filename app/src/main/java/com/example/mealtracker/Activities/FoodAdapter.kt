@@ -8,10 +8,24 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.mealtracker.R
 
-class FoodAdapter(private var foodList: List<FoodItem>) : RecyclerView.Adapter<FoodAdapter.FoodViewHolder>() {
-    class FoodViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val tvFoodName: TextView = view.findViewById(R.id.tv_food_name)
-        val tvCalories: TextView = view.findViewById(R.id.tv_calories)
+class FoodAdapter(
+    private var foodList: List<FoodItem>,
+    private val onItemLongClick: (FoodItem) -> Unit
+) : RecyclerView.Adapter<FoodAdapter.FoodViewHolder>() {
+
+    inner class FoodViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val tvName: TextView = itemView.findViewById(R.id.tv_food_name)
+        private val tvCalories: TextView = itemView.findViewById(R.id.tv_calories)
+
+        fun bind(food: FoodItem) {
+            tvName.text = food.name
+            tvCalories.text = "${food.calories} kcal"
+
+            itemView.setOnLongClickListener {
+                onItemLongClick(food)
+                true
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FoodViewHolder {
@@ -20,15 +34,13 @@ class FoodAdapter(private var foodList: List<FoodItem>) : RecyclerView.Adapter<F
     }
 
     override fun onBindViewHolder(holder: FoodViewHolder, position: Int) {
-        val food = foodList[position]
-        holder.tvFoodName.text = food.name
-        holder.tvCalories.text = "${food.calories} kcal"
+        holder.bind(foodList[position])
     }
 
     override fun getItemCount(): Int = foodList.size
 
-    fun updateData(newFoodList: List<FoodItem>) {
-        foodList = newFoodList
+    fun updateData(newList: List<FoodItem>) {
+        foodList = newList
         notifyDataSetChanged()
     }
 }

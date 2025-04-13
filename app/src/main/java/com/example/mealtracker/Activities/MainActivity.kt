@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.mealtracker.R
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
     private val db = FirebaseFirestore.getInstance()
@@ -78,17 +79,52 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-        private fun verificarSesion() {
-        val cursor = localDb.rawQuery("SELECT email, contrasena FROM usuarios", null)
-        if (cursor.moveToFirst()) {
-            val email = cursor.getString(cursor.getColumnIndexOrThrow("email"))
-            val password = cursor.getString(cursor.getColumnIndexOrThrow("contrasena"))
-            cursor.close()
-            comprobarUsuario(email, password)
+    private fun verificarSesion() {
+        val auth = FirebaseAuth.getInstance()
+        val currentUser = auth.currentUser
+
+        if (currentUser != null) {
+            // El usuario ya está logueado
+            val email = currentUser.email ?: ""
+            val password = obtenerPasswordDesdeBaseDeDatos(email) // Recupera la contraseña de la base de datos
+            comprobarUsuarioConAuth(email, password)
         } else {
-            cursor.close()
+            // No hay usuario autenticado
+            val cursor = localDb.rawQuery("SELECT email, contrasena FROM usuarios", null)
+            if (cursor.moveToFirst()) {
+                val email = cursor.getString(cursor.getColumnIndexOrThrow("email"))
+                val password = cursor.getString(cursor.getColumnIndexOrThrow("contrasena"))
+                cursor.close()
+                comprobarUsuario(email, password)
+            } else {
+                cursor.close()
+            }
         }
     }
+    private fun comprobarUsuarioConAuth(email: String, password: String) {
+        val auth = FirebaseAuth.getInstance()
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnSuccessListener {
+                // Usuario autenticado correctamente con Firebase
+                startActivity(Intent(this, InicioActivity::class.java))
+                finish()
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Error de autenticación", Toast.LENGTH_SHORT).show()
+            }
+    }
+    private fun obtenerPasswordDesdeBaseDeDatos(email: String): String {
+        val cursor = localDb.rawQuery("SELECT contrasena FROM usuarios WHERE email = ?", arrayOf(email))
+        var password = ""
+        if (cursor.moveToFirst()) {
+            password = cursor.getString(cursor.getColumnIndexOrThrow("contrasena"))
+        }
+        cursor.close()
+        return password
+    }
+
+
+
 
     private fun guardarCredencialesLocal(email: String, password: String) {
         // Usar transacciones
