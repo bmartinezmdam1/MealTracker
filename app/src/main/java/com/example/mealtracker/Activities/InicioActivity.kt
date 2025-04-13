@@ -64,6 +64,11 @@ class InicioActivity : AppCompatActivity() {
                     finish()
                     true
                 }
+                R.id.cambiar_dieta -> {
+                    startActivity(Intent(this, DietaActivity::class.java))
+                    finish()
+                    true
+                }
                 else -> false
             }
         }
