@@ -1,62 +1,164 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:background="@android:color/white"
     android:padding="16dp">
 
-    <EditText
-        android:id="@+id/et_food_name"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Nombre de la comida" />
+        android:orientation="vertical">
 
-    <EditText
-        android:id="@+id/et_calories"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Calorías"
-        android:inputType="number" />
+        <!-- Encabezado -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Añadir alimento"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
 
-    <EditText
-        android:id="@+id/et_protein"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Proteínas (g)"
-        android:inputType="numberDecimal" />
+        <!-- Nombre -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nombre del alimento"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:layout_marginTop="8dp" />
+        <EditText
+            android:id="@+id/et_food_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:hint="Ej: Pechuga de pollo"
+            android:textColor="#000000"
+            android:textColorHint="#AAAAAA" />
 
-    <EditText
-        android:id="@+id/et_carbs"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Carbohidratos (g)"
-        android:inputType="numberDecimal" />
+        <!-- Gramos -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Gramos consumidos"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
+        <EditText
+            android:id="@+id/et_total_grams"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:hint="Ej: 150"
+            android:inputType="number"
+            android:textColor="#000000"
+            android:textColorHint="#AAAAAA" />
+        <!-- Resumen nutricional -->
+        <TextView
+            android:id="@+id/tv_calories"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Calorías: 0 kcal"
+            android:textSize="25sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:gravity="center"
+            android:layout_marginBottom="16dp" />
 
-    <EditText
-        android:id="@+id/et_fats"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Grasas (g)"
-        android:inputType="numberDecimal" />
 
-    <EditText
-        android:id="@+id/et_vitamin_a"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Vitamina A (mg)"
-        android:inputType="numberDecimal" />
 
-    <EditText
-        android:id="@+id/et_vitamin_c"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Vitamina C (mg)"
-        android:inputType="numberDecimal" />
+        <!-- Macronutrientes -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Valores por 100g"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp" />
 
-    <Button
-        android:id="@+id/btn_save"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Guardar" />
+        <!-- Proteínas -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Proteínas (g)"
+            android:textColor="#000000" />
+        <EditText
+            android:id="@+id/et_protein"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:inputType="number"
+            android:textColor="#000000" />
 
-</LinearLayout>
+        <!-- Carbohidratos -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Carbohidratos (g)"
+            android:textColor="#000000" />
+        <EditText
+            android:id="@+id/et_carbs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:inputType="number"
+            android:textColor="#000000" />
+
+        <!-- Grasas -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Grasas (g)"
+            android:textColor="#000000" />
+        <EditText
+            android:id="@+id/et_fats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:inputType="number"
+            android:textColor="#000000" />
+
+        <!-- Vitamina A -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Vitamina A (mcg)"
+            android:textColor="#000000"
+            android:layout_marginTop="16dp" />
+        <EditText
+            android:id="@+id/et_vitamin_a"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:inputType="number"
+            android:textColor="#000000" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Vitamina C (mg)"
+            android:textColor="#000000" />
+        <EditText
+            android:id="@+id/et_vitamin_c"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:inputType="number"
+            android:textColor="#000000" />
+
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Guardar alimento"
+            android:layout_marginTop="24dp"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#2196F3"
+            android:textStyle="bold"
+            android:elevation="2dp" />
+    </LinearLayout>
+</ScrollView>

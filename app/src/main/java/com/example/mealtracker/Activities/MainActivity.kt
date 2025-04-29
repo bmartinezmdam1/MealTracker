@@ -1,16 +1,22 @@
 package com.example.mealtracker.Activities
 
+import android.annotation.SuppressLint
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.mealtracker.R
 import com.google.firebase.auth.FirebaseAuth
+import java.util.Calendar
 
 class MainActivity : AppCompatActivity() {
     private val db = FirebaseFirestore.getInstance()
@@ -48,6 +54,8 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Por favor, completa todos los campos", Toast.LENGTH_SHORT).show()
             }
+            programarNotificacionDiaria()
+
         }
 
         // Botón de registro
@@ -142,5 +150,37 @@ class MainActivity : AppCompatActivity() {
         } finally {
             localDb.endTransaction()
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    @SuppressLint("ScheduleExactAlarm")
+    private fun programarNotificacionDiaria() {
+        val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+        val intent = Intent(this, ReminderReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            this, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = System.currentTimeMillis()
+            set(Calendar.HOUR_OF_DAY, 6)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+
+            if (before(Calendar.getInstance())) {
+                add(Calendar.DATE, 1) // Si ya pasó hoy, programa para mañana
+            }
+        }
+
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            calendar.timeInMillis,
+            pendingIntent
+        )
+
+        // Para verificar que se programó bien (puedes quitarlo luego)
+        Log.d("Notificacion", "Notificación programada para: ${calendar.time}")
     }
 }

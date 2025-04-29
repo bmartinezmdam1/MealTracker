@@ -1,83 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.mealtracker"
-    tools:ignore="MissingLeanbackLauncher">
+    package="com.example.mealtracker">
 
-    <!-- Permissions -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission
-        android:name="android.permission.POST_NOTIFICATIONS"
-        android:usesPermissionFlags="neverForLocation"
-        tools:targetApi="33" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-
-    <!-- Features -->
+    <!-- Permisos -->
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
     <uses-feature
         android:name="android.hardware.touchscreen"
         android:required="false" />
-    <uses-feature
-        android:name="android.software.leanback"
-        android:required="false" />
 
-    <!-- Remove this if not a TV app -->
-    <!-- <uses-feature
-        android:name="android.software.leanback"
-        android:required="true" /> -->
-
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <application
         android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
-        android:icon="@drawable/meal_tracker"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
         android:theme="@style/Theme.MealTracker"
-        tools:targetApi="31">
+        android:icon="@drawable/meal_tracker"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true">
 
-        <!-- Main Activity -->
+        <!-- ✅ Receiver dentro del <application> -->
+        <receiver
+            android:name=".Activities.ReminderReceiver"
+            android:exported="false"
+            tools:ignore="MissingClass" />
+
+        <!-- Actividades -->
         <activity
             android:name=".Activities.MainActivity"
-            android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.MealTracker">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".Activities.RegistrarseActivity"
-            android:exported="true"
-            tools:ignore="MissingClass">
-        </activity>
-        <activity
-            android:name=".Activities.InicioActivity"
-            android:exported="true"
-            tools:ignore="Instantiatable,MissingClass">
-        </activity>
-        <activity
-            android:name=".Activities.AnadirComida"
-            android:exported="true"
-            tools:ignore="Instantiatable,MissingClass">
-        </activity>
-        <activity
-            android:name=".Activities.NutrientesDiarios"
-            android:exported="true"
-            tools:ignore="Instantiatable,MissingClass">
-        </activity>
-        <activity
-            android:name=".Activities.PerfilActivity"
-            android:exported="true"
-            tools:ignore="Instantiatable,MissingClass">
-        </activity>
-        <activity
-            android:name=".Activities.DietaActivity"
-            android:exported="true"
-            tools:ignore="DuplicateActivity,Instantiatable,MissingClass">
-        </activity>
+
+        <!-- Resto de actividades -->
+        <activity android:name=".Activities.RegistrarseActivity" android:exported="true" />
+        <activity android:name=".Activities.InicioActivity" android:exported="true" />
+        <activity android:name=".Activities.AnadirComida" android:exported="true" />
+        <activity android:name=".Activities.NutrientesDiarios" android:exported="true" />
+        <activity android:name=".Activities.PerfilActivity" android:exported="true" />
+        <activity android:name=".Activities.DietaActivity" android:exported="true" />
 
     </application>
 </manifest>

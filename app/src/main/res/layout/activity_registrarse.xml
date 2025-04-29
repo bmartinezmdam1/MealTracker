@@ -4,7 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="20dp">
+    android:padding="20dp"
+    android:background="@android:color/white">
 
     <!-- Logo centrado -->
     <ImageView
@@ -25,10 +26,13 @@
         android:layout_height="wrap_content"
         android:hint="Nombre"
         android:inputType="textPersonName"
+        android:textColor="#000000"
+        android:textColorHint="#888888"
+        android:background="@android:color/white"
         app:layout_constraintTop_toBottomOf="@id/imageLogo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="30sp"/>
+        android:layout_marginTop="30dp"/>
 
     <!-- Campo Email -->
     <EditText
@@ -37,10 +41,13 @@
         android:layout_height="wrap_content"
         android:hint="E-mail"
         android:inputType="textEmailAddress"
+        android:textColor="#000000"
+        android:textColorHint="#888888"
+        android:background="@android:color/white"
         app:layout_constraintTop_toBottomOf="@id/name"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="30sp"/>
+        android:layout_marginTop="30dp"/>
 
     <!-- Campo Contraseña -->
     <EditText
@@ -49,10 +56,13 @@
         android:layout_height="wrap_content"
         android:hint="Contraseña"
         android:inputType="textPassword"
+        android:textColor="#000000"
+        android:textColorHint="#888888"
+        android:background="@android:color/white"
         app:layout_constraintTop_toBottomOf="@id/editTextTextEmailAddress"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="30sp"/>
+        android:layout_marginTop="30dp"/>
 
     <!-- Campo Repetir Contraseña -->
     <EditText
@@ -61,10 +71,13 @@
         android:layout_height="wrap_content"
         android:hint="Repetir Contraseña"
         android:inputType="textPassword"
+        android:textColor="#000000"
+        android:textColorHint="#888888"
+        android:background="@android:color/white"
         app:layout_constraintTop_toBottomOf="@id/password"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="30sp"/>
+        android:layout_marginTop="30dp"/>
 
     <!-- CheckBox Aceptar términos -->
     <CheckBox
@@ -72,6 +85,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Aceptas los términos y condiciones."
+        android:textColor="#000000"
         app:layout_constraintTop_toBottomOf="@id/repeatPassword"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginTop="20dp"/>
@@ -82,10 +96,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="REGISTRARSE"
+        android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/checkbox_meat"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="30sp"/>
+        android:layout_marginTop="30dp"
+        android:backgroundTint="#2196F3"
+        />
 
     <!-- Botón Iniciar Sesión -->
     <Button
@@ -93,9 +110,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="INICIAR SESIÓN"
+        android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/btn_registrarse_registro"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="10sp"/>
+        android:layout_marginTop="10dp"
+        android:backgroundTint="#2196F3"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

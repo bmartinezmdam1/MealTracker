@@ -7,6 +7,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
@@ -32,6 +33,13 @@ class InicioActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.inicio_activity)
+
+        // Pedir permiso de notificaciones en Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1001)
+            }
+        }
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         rvFoodList = findViewById(R.id.rv_food_list)
@@ -83,22 +91,34 @@ class InicioActivity : AppCompatActivity() {
         }
 
         scheduleMidnightReset()
+        scheduleDailyReminder()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CODE_ADD_FOOD && resultCode == Activity.RESULT_OK) {
             data?.let {
-                val food = FoodItem(
-                    name = it.getStringExtra("nombre") ?: "",
-                    calories = it.getStringExtra("calorias")?.toIntOrNull() ?: 0,
-                    protein = it.getStringExtra("proteinas")?.toIntOrNull() ?: 0,
-                    carbs = it.getStringExtra("carbohidratos")?.toIntOrNull() ?: 0,
-                    fats = it.getStringExtra("grasas")?.toIntOrNull() ?: 0,
-                    vitaminA = it.getStringExtra("vitamina_a")?.toIntOrNull() ?: 0,
-                    vitaminC = it.getStringExtra("vitamina_c")?.toIntOrNull() ?: 0
+                val name = it.getStringExtra("nombre") ?: ""
+                val calories = it.getStringExtra("calorias")?.toIntOrNull() ?: 0
+                val protein = it.getStringExtra("proteinas")?.toIntOrNull() ?: 0
+                val carbs = it.getStringExtra("carbohidratos")?.toIntOrNull() ?: 0
+                val fats = it.getStringExtra("grasas")?.toIntOrNull() ?: 0
+                val vitaminA = it.getStringExtra("vitamina_a")?.toIntOrNull() ?: 0
+                val vitaminC = it.getStringExtra("vitamina_c")?.toIntOrNull() ?: 0
+                val gramos = it.getStringExtra("gramos")?.toIntOrNull() ?: 0
+
+                val foodItem = FoodItem(
+                    name = name,
+                    calories = calories,
+                    protein = protein,
+                    carbs = carbs,
+                    fats = fats,
+                    vitaminA = vitaminA,
+                    vitaminC = vitaminC,
+                    totalGrams = gramos
                 )
-                viewModel.addFood(food)
+
+                viewModel.addFood(foodItem)
             }
         }
     }
@@ -143,6 +163,44 @@ class InicioActivity : AppCompatActivity() {
 
         alarmManager.setExact(AlarmManager.RTC_WAKEUP, midnight.timeInMillis, pendingIntent)
     }
+
+    @SuppressLint("ScheduleExactAlarm")
+    private fun scheduleDailyReminder() {
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        // Check for exact alarm permission on Android 12+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (!alarmManager.canScheduleExactAlarms()) {
+                val intent = Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                startActivity(intent)
+                return // Exit if permission not granted
+            }
+        }
+
+        val intent = Intent(this, ReminderReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = System.currentTimeMillis()
+            set(Calendar.HOUR_OF_DAY, 10)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+
+            if (timeInMillis <= System.currentTimeMillis()) {
+                add(Calendar.DAY_OF_YEAR, 1)
+            }
+        }
+
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            calendar.timeInMillis,
+            pendingIntent
+        )
+    }
+
 
     companion object {
         private const val REQUEST_CODE_ADD_FOOD = 1

@@ -1,5 +1,5 @@
 import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
+import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 data class FoodItem(
@@ -9,5 +9,6 @@ data class FoodItem(
     val carbs: Int,
     val fats: Int,
     val vitaminA: Int,
-    val vitaminC: Int
+    val vitaminC: Int,
+    val totalGrams: Int // NUEVO
 ) : Parcelable
