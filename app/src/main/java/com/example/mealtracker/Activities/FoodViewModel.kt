@@ -81,8 +81,15 @@ class FoodViewModel : ViewModel() {
         )
     }
 
+
     private fun recalculateCalories() {
         val list = _foodList.value ?: return
         _totalCalories.value = list.sumOf { it.calories }
+    }
+
+    // Método agregado para establecer una nueva lista de alimentos
+    fun setFoodList(newList: List<FoodItem>) {
+        _foodList.value = newList.toMutableList()
+        recalculateCalories()
     }
 }

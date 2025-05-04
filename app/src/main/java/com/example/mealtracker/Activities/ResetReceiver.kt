@@ -1,17 +1,22 @@
 package com.example.mealtracker.Activities
 
-
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStoreOwner
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 class ResetReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        // Clear stored meals
+        context.getSharedPreferences("meal_tracker_prefs", Context.MODE_PRIVATE)
+            .edit().remove("comidas_guardadas").apply()
 
-        val sharedPrefs = context.getSharedPreferences("meal_tracker_prefs", Context.MODE_PRIVATE)
-        sharedPrefs.edit().remove("comidas_guardadas").apply()
-
+        // Delete yesterday’s records from DB
+        val db = DBHelper(context)
+        val yesterday = Calendar.getInstance().apply { add(Calendar.DATE, -1) }
+        val fmt = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        db.eliminarAlimentosConsumidosPorFecha(fmt.format(yesterday.time))
     }
 }

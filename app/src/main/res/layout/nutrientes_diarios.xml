@@ -120,5 +120,34 @@
             android:textSize="14sp"
             android:paddingTop="4dp" />
 
+        <!-- Add these alongside existing charts -->
+        <com.github.mikephil.charting.charts.HorizontalBarChart
+            android:id="@+id/barChartProteinEstimate"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+        <com.github.mikephil.charting.charts.HorizontalBarChart
+            android:id="@+id/barChartCarbsEstimate"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+        <com.github.mikephil.charting.charts.HorizontalBarChart
+            android:id="@+id/barChartCaloriesEstimate"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+        <com.github.mikephil.charting.charts.HorizontalBarChart
+            android:id="@+id/barChartFatsEstimate"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+
+        <!-- Similarly for Carbs, Fats, Calories Estimates -->
+
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pieChartMacrosEstimate"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"/>
+
     </LinearLayout>
 </ScrollView>

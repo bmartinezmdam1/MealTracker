@@ -1,5 +1,6 @@
 package com.example.mealtracker.Activities
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.NotificationChannel
@@ -8,67 +9,98 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.example.mealtracker.R
 import java.util.Calendar
 
 class ReminderReceiver : BroadcastReceiver() {
 
-    @SuppressLint("ScheduleExactAlarm")
     override fun onReceive(context: Context, intent: Intent?) {
-        val channelId = "meal_reminder_channel"
-        val title = "Recordatorio de comidas"
-        val message = "¡No olvides registrar tus alimentos!"
+        val prefs = context.getSharedPreferences("app_usage", Context.MODE_PRIVATE)
+        val lastInteraction = prefs.getLong("last_interaction", 0L)
 
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val yesterdayNoon = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_YEAR, -1)
+            set(Calendar.HOUR_OF_DAY, 12)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                "Recordatorios de comida",
-                NotificationManager.IMPORTANCE_HIGH
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
+        // Only notify if user hasn't interacted since yesterday at 12 PM
+        if (lastInteraction >= yesterdayNoon) return
 
-        val bigPicture = android.graphics.BitmapFactory.decodeResource(context.resources, R.drawable.meal_tracker)
+        // 1. Create notification channel (Android O+)
+        createNotificationChannel(context)
 
-        val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.meal_tracker)
-            .setContentTitle(title)
-            .setContentText(message)
+        // 2. Build notification
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("Record Your Meals!")
+            .setContentText("Don't forget to track your meals today!")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
-            .setStyle(
-                NotificationCompat.BigPictureStyle()
-                    .bigPicture(bigPicture)
-            )
             .build()
 
-        notificationManager.notify(1, notification)
+        // 3. Show notification if permission granted
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+                == PackageManager.PERMISSION_GRANTED
+            ) {
+                NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
+            }
+        } else {
+            NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
+        }
 
-        // Reprogramar para mañana a las 10 AM
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val newIntent = Intent(context, ReminderReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
-            context, 0, newIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        // 4. Reschedule next day's alarm
+        rescheduleAlarm(context)
+    }
+
+    private fun createNotificationChannel(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "Meal Reminders",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply { description = "Reminders to track your meals" }
+
+            val manager = context.getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(channel)
+        }
+    }
+
+    @SuppressLint("ScheduleExactAlarm")
+    private fun rescheduleAlarm(context: Context) {
+        val alarmMgr = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val pi = PendingIntent.getBroadcast(
+            context,
+            REQUEST_CODE_REMINDER,
+            Intent(context, ReminderReceiver::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val nextCalendar = Calendar.getInstance().apply {
-            timeInMillis = System.currentTimeMillis()
-            add(Calendar.DAY_OF_YEAR, 1)
+        val next10am = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 10)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
+            if (before(Calendar.getInstance())) add(Calendar.DAY_OF_YEAR, 1)
         }
 
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            nextCalendar.timeInMillis,
-            pendingIntent
+        alarmMgr.setAlarmClock(
+            AlarmManager.AlarmClockInfo(next10am.timeInMillis, pi),
+            pi
         )
     }
 
+    companion object {
+        const val CHANNEL_ID = "meal_reminder_channel"
+        const val NOTIFICATION_ID = 1001
+        const val REQUEST_CODE_REMINDER = 0
+    }
 }

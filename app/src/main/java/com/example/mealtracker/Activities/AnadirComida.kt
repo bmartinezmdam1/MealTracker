@@ -8,6 +8,9 @@ import android.text.TextWatcher
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.mealtracker.R
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class AnadirComida : AppCompatActivity() {
 
@@ -103,6 +106,20 @@ class AnadirComida : AppCompatActivity() {
             val vitaminC = etVitaminC.text.toString().toIntOrNull() ?: 0
 
             calculatedCalories = (protein * 4) + (carbs * 4) + (fats * 9)
+
+            // Insertar alimento consumido en la base de datos
+            val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            dbHelper.insertarAlimentoConsumido(
+                name,
+                calculatedCalories,
+                protein,
+                carbs,
+                fats,
+                vitaminA,
+                vitaminC,
+                totalGrams,
+                fechaActual
+            )
 
             val resultIntent = Intent().apply {
                 putExtra("nombre", name)

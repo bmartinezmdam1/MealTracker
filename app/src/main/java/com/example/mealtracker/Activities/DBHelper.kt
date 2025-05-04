@@ -1,5 +1,6 @@
 package com.example.mealtracker.Activities
 
+import FoodItem
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
@@ -7,7 +8,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 
-class DBHelper(context: Context) : SQLiteOpenHelper(context, "meal_tracker_db", null, 3) {
+class DBHelper(context: Context) : SQLiteOpenHelper(context, "meal_tracker_db", null, 4) {
 
     override fun onCreate(db: SQLiteDatabase?) {
         db?.execSQL(
@@ -30,7 +31,6 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "meal_tracker_db", 
             )"""
         )
 
-        // ✅ Tabla de alimentos por 100g
         db?.execSQL(
             """CREATE TABLE IF NOT EXISTS alimentos (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,13 +43,29 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "meal_tracker_db", 
             )"""
         )
 
+        db?.execSQL(
+            """CREATE TABLE IF NOT EXISTS alimentos_consumidos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nombre TEXT,
+                calorias INTEGER,
+                proteinas INTEGER,
+                carbohidratos INTEGER,
+                grasas INTEGER,
+                vitamina_a INTEGER,
+                vitamina_c INTEGER,
+                gramos INTEGER,
+                fecha TEXT
+            )"""
+        )
+
         Log.d("DBHelper", "onCreate ejecutado: tablas creadas")
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
         db?.execSQL("DROP TABLE IF EXISTS usuarios")
         db?.execSQL("DROP TABLE IF EXISTS objetivos_nutricionales")
-        db?.execSQL("DROP TABLE IF EXISTS alimentos") // ✅ eliminar si existía
+        db?.execSQL("DROP TABLE IF EXISTS alimentos")
+        db?.execSQL("DROP TABLE IF EXISTS alimentos_consumidos")
         onCreate(db)
         Log.d("DBHelper", "onUpgrade ejecutado: versión $oldVersion → $newVersion")
     }
@@ -141,11 +157,94 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "meal_tracker_db", 
         return alimento
     }
 
+    fun insertarAlimentoConsumido(
+        nombre: String,
+        calorias: Int,
+        proteinas: Int,
+        carbohidratos: Int,
+        grasas: Int,
+        vitaminaA: Int,
+        vitaminaC: Int,
+        gramos: Int,
+        fecha: String
+    ) {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put("nombre", nombre)
+            put("calorias", calorias)
+            put("proteinas", proteinas)
+            put("carbohidratos", carbohidratos)
+            put("grasas", grasas)
+            put("vitamina_a", vitaminaA)
+            put("vitamina_c", vitaminaC)
+            put("gramos", gramos)
+            put("fecha", fecha)
+        }
+        db.insert("alimentos_consumidos", null, values)
+        db.close()
+    }
+
+    fun obtenerAlimentosConsumidosPorFecha(fecha: String): List<FoodItem> {
+        val alimentos = mutableListOf<FoodItem>()
+        val db = readableDatabase
+        val cursor = db.rawQuery(
+            "SELECT * FROM alimentos_consumidos WHERE fecha = ?",
+            arrayOf(fecha)
+        )
+        while (cursor.moveToNext()) {
+            val alimento = FoodItem(
+                name = cursor.getString(cursor.getColumnIndexOrThrow("nombre")),
+                calories = cursor.getInt(cursor.getColumnIndexOrThrow("calorias")),
+                protein = cursor.getInt(cursor.getColumnIndexOrThrow("proteinas")),
+                carbs = cursor.getInt(cursor.getColumnIndexOrThrow("carbohidratos")),
+                fats = cursor.getInt(cursor.getColumnIndexOrThrow("grasas")),
+                vitaminA = cursor.getInt(cursor.getColumnIndexOrThrow("vitamina_a")),
+                vitaminC = cursor.getInt(cursor.getColumnIndexOrThrow("vitamina_c")),
+                totalGrams = cursor.getInt(cursor.getColumnIndexOrThrow("gramos"))
+            )
+            alimentos.add(alimento)
+        }
+        cursor.close()
+        db.close()
+        return alimentos
+    }
+
+    fun eliminarAlimentosConsumidosPorFecha(fecha: String) {
+        val db = writableDatabase
+        db.delete("alimentos_consumidos", "fecha = ?", arrayOf(fecha))
+        db.close()
+    }
     fun getWritableDb(): SQLiteDatabase {
         return writableDatabase
     }
 
-    fun getReadableDb(): SQLiteDatabase {
-        return readableDatabase
+    fun obtenerTotalesDiariosAnteriores(fechaActual: String): List<DailyTotal> {
+        val db = readableDatabase
+        val cursor = db.rawQuery(
+            """
+        SELECT fecha, 
+        SUM(calorias) as total_calorias, 
+        SUM(proteinas) as total_proteinas, 
+        SUM(carbohidratos) as total_carbohidratos, 
+        SUM(grasas) as total_grasas 
+        FROM alimentos_consumidos 
+        WHERE fecha < ? 
+        GROUP BY fecha
+        """.trimIndent(),
+            arrayOf(fechaActual)
+        )
+
+        val dailyTotals = mutableListOf<DailyTotal>()
+        while (cursor.moveToNext()) {
+            val fecha = cursor.getString(cursor.getColumnIndexOrThrow("fecha"))
+            val totalCalories = cursor.getInt(cursor.getColumnIndexOrThrow("total_calorias"))
+            val totalProtein = cursor.getInt(cursor.getColumnIndexOrThrow("total_proteinas"))
+            val totalCarbs = cursor.getInt(cursor.getColumnIndexOrThrow("total_carbohidratos"))
+            val totalFats = cursor.getInt(cursor.getColumnIndexOrThrow("total_grasas"))
+            dailyTotals.add(DailyTotal(fecha, totalCalories, totalProtein, totalCarbs, totalFats))
+        }
+        cursor.close()
+        db.close()
+        return dailyTotals
     }
 }

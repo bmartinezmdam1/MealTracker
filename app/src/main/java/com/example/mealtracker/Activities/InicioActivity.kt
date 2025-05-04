@@ -1,24 +1,31 @@
 package com.example.mealtracker.Activities
 
 import FoodItem
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.mealtracker.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 class InicioActivity : AppCompatActivity() {
 
@@ -30,65 +37,77 @@ class InicioActivity : AppCompatActivity() {
     private lateinit var btnAddFood: Button
     private lateinit var tvCaloriesSummary: TextView
 
+    // Launcher for notification permission on Android 13+
+    private val requestNotifPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) scheduleDailyReminder()
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.inicio_activity)
 
-        // Pedir permiso de notificaciones en Android 13+
+        // Request POST_NOTIFICATIONS on Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1001)
+            when {
+                ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    // already granted
+                }
+                shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) -> {
+                    requestNotifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+                else -> requestNotifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
 
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         rvFoodList = findViewById(R.id.rv_food_list)
         btnAddFood = findViewById(R.id.btn_add_food)
         tvCaloriesSummary = findViewById(R.id.tv_calories_summary)
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
         dbHelper = DBHelper(this)
-
-        foodAdapter = FoodAdapter(emptyList()) { selectedFood ->
-            mostrarDialogoBorrar(selectedFood)
-        }
+        foodAdapter = FoodAdapter(emptyList()) { food -> showDeleteDialog(food) }
         rvFoodList.layoutManager = LinearLayoutManager(this)
         rvFoodList.adapter = foodAdapter
 
-        viewModel.foodList.observe(this) {
-            foodAdapter.updateData(it)
-        }
-
-        viewModel.totalCalories.observe(this) {
-            updateCalorieSummary()
-        }
+        viewModel.foodList.observe(this) { foodAdapter.updateData(it) }
+        viewModel.totalCalories.observe(this) { updateCalorieSummary() }
 
         btnAddFood.setOnClickListener {
-            val intent = Intent(this, AnadirComida::class.java)
-            startActivityForResult(intent, REQUEST_CODE_ADD_FOOD)
+            startActivityForResult(
+                Intent(this, AnadirComida::class.java),
+                REQUEST_CODE_ADD_FOOD
+            )
         }
 
         tvCaloriesSummary.setOnClickListener {
-            val intent = Intent(this, NutrientesDiarios::class.java)
-            intent.putParcelableArrayListExtra("food_list", ArrayList(viewModel.foodList.value ?: listOf()))
-            startActivity(intent)
+            startActivity(
+                Intent(this, NutrientesDiarios::class.java)
+                    .putParcelableArrayListExtra(
+                        "food_list",
+                        ArrayList(viewModel.foodList.value ?: emptyList())
+                    )
+            )
         }
 
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.page_inicio -> true
                 R.id.page_perfil -> {
-                    startActivity(Intent(this, PerfilActivity::class.java))
-                    finish()
-                    true
+                    startActivity(Intent(this, PerfilActivity::class.java)); finish(); true
                 }
                 R.id.cambiar_dieta -> {
-                    startActivity(Intent(this, DietaActivity::class.java))
-                    finish()
-                    true
+                    startActivity(Intent(this, DietaActivity::class.java)); finish(); true
                 }
                 else -> false
             }
         }
+
+        // Load today’s foods
+        val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        viewModel.setFoodList(dbHelper.obtenerAlimentosConsumidosPorFecha(todayStr))
 
         scheduleMidnightReset()
         scheduleDailyReminder()
@@ -98,46 +117,28 @@ class InicioActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CODE_ADD_FOOD && resultCode == Activity.RESULT_OK) {
             data?.let {
-                val name = it.getStringExtra("nombre") ?: ""
-                val calories = it.getStringExtra("calorias")?.toIntOrNull() ?: 0
-                val protein = it.getStringExtra("proteinas")?.toIntOrNull() ?: 0
-                val carbs = it.getStringExtra("carbohidratos")?.toIntOrNull() ?: 0
-                val fats = it.getStringExtra("grasas")?.toIntOrNull() ?: 0
-                val vitaminA = it.getStringExtra("vitamina_a")?.toIntOrNull() ?: 0
-                val vitaminC = it.getStringExtra("vitamina_c")?.toIntOrNull() ?: 0
-                val gramos = it.getStringExtra("gramos")?.toIntOrNull() ?: 0
-
-                val foodItem = FoodItem(
-                    name = name,
-                    calories = calories,
-                    protein = protein,
-                    carbs = carbs,
-                    fats = fats,
-                    vitaminA = vitaminA,
-                    vitaminC = vitaminC,
-                    totalGrams = gramos
+                val item = FoodItem(
+                    name = it.getStringExtra("nombre") ?: "",
+                    calories = it.getStringExtra("calorias")?.toIntOrNull() ?: 0,
+                    protein = it.getStringExtra("proteinas")?.toIntOrNull() ?: 0,
+                    carbs = it.getStringExtra("carbohidratos")?.toIntOrNull() ?: 0,
+                    fats = it.getStringExtra("grasas")?.toIntOrNull() ?: 0,
+                    vitaminA = it.getStringExtra("vitamina_a")?.toIntOrNull() ?: 0,
+                    vitaminC = it.getStringExtra("vitamina_c")?.toIntOrNull() ?: 0,
+                    totalGrams = it.getStringExtra("gramos")?.toIntOrNull() ?: 0
                 )
-
-                viewModel.addFood(foodItem)
+                viewModel.addFood(item)
             }
         }
     }
 
-    private fun mostrarDialogoBorrar(food: FoodItem) {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("¿Borrar entrada?")
+    private fun showDeleteDialog(food: FoodItem) {
+        AlertDialog.Builder(this)
+            .setTitle("¿Borrar entrada?")
             .setMessage("¿Deseas borrar \"${food.name}\"?")
-            .setPositiveButton("Borrar") { dialog, _ ->
-                viewModel.removeFood(food)
-                dialog.dismiss()
-            }
-            .setNegativeButton("Cancelar") { dialog, _ ->
-                dialog.dismiss()
-            }
-
-        val dialog = builder.create()
-        dialog.setCanceledOnTouchOutside(true)
-        dialog.show()
+            .setPositiveButton("Borrar") { _, _ -> viewModel.removeFood(food) }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun updateCalorieSummary() {
@@ -146,61 +147,46 @@ class InicioActivity : AppCompatActivity() {
 
     @SuppressLint("ScheduleExactAlarm")
     private fun scheduleMidnightReset() {
-        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(this, ResetReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
-            this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        val mgr = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val pi = PendingIntent.getBroadcast(
+            this, 1, Intent(this, ResetReceiver::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
         val midnight = Calendar.getInstance().apply {
-            timeInMillis = System.currentTimeMillis()
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
             add(Calendar.DATE, 1)
         }
-
-        alarmManager.setExact(AlarmManager.RTC_WAKEUP, midnight.timeInMillis, pendingIntent)
+        mgr.setExact(AlarmManager.RTC_WAKEUP, midnight.timeInMillis, pi)
     }
 
     @SuppressLint("ScheduleExactAlarm")
     private fun scheduleDailyReminder() {
-        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-
-        // Check for exact alarm permission on Android 12+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (!alarmManager.canScheduleExactAlarms()) {
-                val intent = Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-                startActivity(intent)
-                return // Exit if permission not granted
-            }
+        val mgr = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !mgr.canScheduleExactAlarms()) {
+            startActivity(Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM))
+            return
         }
-
-        val intent = Intent(this, ReminderReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
-            this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        val pi = PendingIntent.getBroadcast(
+            this, ReminderReceiver.REQUEST_CODE_REMINDER,
+            Intent(this, ReminderReceiver::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
-        val calendar = Calendar.getInstance().apply {
-            timeInMillis = System.currentTimeMillis()
-            set(Calendar.HOUR_OF_DAY, 10)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-
-            if (timeInMillis <= System.currentTimeMillis()) {
-                add(Calendar.DAY_OF_YEAR, 1)
-            }
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 10); set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+            if (before(Calendar.getInstance())) add(Calendar.DAY_OF_YEAR, 1)
         }
-
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            calendar.timeInMillis,
-            pendingIntent
-        )
+        mgr.setAlarmClock(AlarmManager.AlarmClockInfo(cal.timeInMillis, pi), pi)
     }
 
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        getSharedPreferences("app_usage", MODE_PRIVATE)
+            .edit()
+            .putLong("last_interaction", System.currentTimeMillis())
+            .apply()
+    }
 
     companion object {
         private const val REQUEST_CODE_ADD_FOOD = 1
