@@ -23,7 +23,7 @@
         android:allowBackup="true"
         android:label="@string/app_name"
         android:theme="@style/Theme.MealTracker"
-        android:icon="@drawable/meal_tracker"
+        android:icon="@drawable/logo"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true">
 
@@ -61,8 +61,7 @@
         <receiver
             android:name=".Activities.BootReceiver"
             android:enabled="true"
-            android:exported="false"
-            tools:ignore="MissingClass">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>

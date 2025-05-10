@@ -2,15 +2,15 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
         <item
             android:id="@+id/page_inicio"
-            android:icon="@drawable/home"
+            android:icon="@drawable/casa"
             android:title="Inicio" />
         <item
             android:id="@+id/page_perfil"
-            android:icon="@drawable/profile"
+            android:icon="@drawable/sharp_account_circle_24"
             android:title="Perfil" />
 
         <item
             android:id="@+id/cambiar_dieta"
-            android:icon="@drawable/profile"
+            android:icon="@drawable/comida"
             android:title="Cambiar dieta" />
 </menu>

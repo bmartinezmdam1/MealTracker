@@ -1,10 +1,10 @@
 package com.example.mealtracker.Activities
 
 data class NutritionGoals(
-    var calories: Int,
-    var protein: Int,
-    var carbs: Int,
-    var fats: Int,
-    var vitaminA: Int,
-    var vitaminC: Int
+    val calories: Int = 2000,
+    val protein:  Int = 0,
+    val carbs:    Int = 0,
+    val fats:     Int = 0,
+    val vitaminA: Int = 0,
+    val vitaminC: Int = 0
 )

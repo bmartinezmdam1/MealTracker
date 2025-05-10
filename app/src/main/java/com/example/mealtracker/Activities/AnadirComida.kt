@@ -1,5 +1,6 @@
 package com.example.mealtracker.Activities
 
+import DBHelper
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -42,25 +43,25 @@ class AnadirComida : AppCompatActivity() {
         dbHelper = DBHelper(this)
 
         // Enlazar vistas
-        etFoodName = findViewById(R.id.et_food_name)
-        etProtein = findViewById(R.id.et_protein)
-        etCarbs = findViewById(R.id.et_carbs)
-        etFats = findViewById(R.id.et_fats)
-        etVitaminA = findViewById(R.id.et_vitamin_a)
-        etVitaminC = findViewById(R.id.et_vitamin_c)
+        etFoodName   = findViewById(R.id.et_food_name)
+        etProtein    = findViewById(R.id.et_protein)
+        etCarbs      = findViewById(R.id.et_carbs)
+        etFats       = findViewById(R.id.et_fats)
+        etVitaminA   = findViewById(R.id.et_vitamin_a)
+        etVitaminC   = findViewById(R.id.et_vitamin_c)
         etTotalGrams = findViewById(R.id.et_total_grams)
-        btnSave = findViewById(R.id.btn_save)
-        tvCalories = findViewById(R.id.tv_calories)
+        btnSave      = findViewById(R.id.btn_save)
+        tvCalories   = findViewById(R.id.tv_calories)
 
-        // Autocompletar si el alimento ya existe
+        // Cuando pierde foco, autocompleta si existe en tabla 'alimentos'
         etFoodName.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
-                val nombre = etFoodName.text.toString()
-                val alimento = dbHelper.obtenerAlimentoPorNombre(nombre)
-                alimento?.let {
-                    proteinPer100g = it.proteinas
-                    carbsPer100g = it.carbohidratos
-                    fatsPer100g = it.grasas
+                val nombre = etFoodName.text.toString().trim()
+                val a100: AlimentoPor100g? = dbHelper.obtenerAlimentoPorNombre(nombre)
+                a100?.let {
+                    proteinPer100g  = it.proteinas
+                    carbsPer100g    = it.carbohidratos
+                    fatsPer100g     = it.grasas
                     vitaminAPer100g = it.vitaminaA
                     vitaminCPer100g = it.vitaminaC
                     updateValues()
@@ -68,7 +69,7 @@ class AnadirComida : AppCompatActivity() {
             }
         }
 
-        // Escuchar cambios de gramos
+        // Escuchar cambios de gramos para recalcular macros y calorías
         etTotalGrams.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) = updateValues()
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -83,78 +84,86 @@ class AnadirComida : AppCompatActivity() {
                 Toast.makeText(this, "Ingresa un nombre", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-
-            if (totalGrams == 0) {
+            if (totalGrams <= 0) {
                 Toast.makeText(this, "Ingresa una cantidad válida de gramos", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Guardar alimento base si no existe
+            // Guardamos en 'alimentos' si no existe
             dbHelper.guardarAlimentoSiNoExiste(
-                name,
-                proteinPer100g,
-                carbsPer100g,
-                fatsPer100g,
-                vitaminAPer100g,
-                vitaminCPer100g
+                nombre       = name,
+                proteinas    = proteinPer100g,
+                carbohidratos= carbsPer100g,
+                grasas       = fatsPer100g,
+                vitaminaA    = vitaminAPer100g,
+                vitaminaC    = vitaminCPer100g
             )
 
-            val protein = etProtein.text.toString().toIntOrNull() ?: 0
-            val carbs = etCarbs.text.toString().toIntOrNull() ?: 0
-            val fats = etFats.text.toString().toIntOrNull() ?: 0
-            val vitaminA = etVitaminA.text.toString().toIntOrNull() ?: 0
-            val vitaminC = etVitaminC.text.toString().toIntOrNull() ?: 0
+            // Recuperamos su ID (necesario para tabla 'alimentos_consumidos')
+            val foodId: Long = dbHelper.obtenerIdAlimentoPorNombre(name)
+            // (Implementa este método en DBHelper: SELECT id FROM alimentos WHERE nombre = ?)
 
-            calculatedCalories = (protein * 4) + (carbs * 4) + (fats * 9)
+            // Leemos los valores ingresados
+            val protein  = etProtein.text.toString().toIntOrNull() ?: 0
+            val carbs    = etCarbs.text.toString().toIntOrNull() ?: 0
+            val fats     = etFats.text.toString().toIntOrNull() ?: 0
+            val vitA     = etVitaminA.text.toString().toIntOrNull() ?: 0
+            val vitC     = etVitaminC.text.toString().toIntOrNull() ?: 0
 
-            // Insertar alimento consumido en la base de datos
-            val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            // Calculamos calorías
+            calculatedCalories = protein * 4 + carbs * 4 + fats * 9
+
+            // Fecha actual YYYY-MM-DD
+            val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+            // Insertamos en 'alimentos_consumidos' con ID
             dbHelper.insertarAlimentoConsumido(
-                name,
-                calculatedCalories,
-                protein,
-                carbs,
-                fats,
-                vitaminA,
-                vitaminC,
-                totalGrams,
-                fechaActual
+                foodId        = foodId,
+                nombre        = name,
+                calorias      = calculatedCalories,
+                proteinas     = protein,
+                carbohidratos = carbs,
+                grasas        = fats,
+                vitaminaA     = vitA,
+                vitaminaC     = vitC,
+                gramos        = totalGrams,
+                fecha         = today
             )
 
-            val resultIntent = Intent().apply {
+            // Devolvemos datos a la Activity que llamó
+            Intent().apply {
+                putExtra("id", foodId.toString())
                 putExtra("nombre", name)
                 putExtra("calorias", calculatedCalories.toString())
                 putExtra("proteinas", protein.toString())
                 putExtra("carbohidratos", carbs.toString())
                 putExtra("grasas", fats.toString())
-                putExtra("vitamina_a", vitaminA.toString())
-                putExtra("vitamina_c", vitaminC.toString())
+                putExtra("vitamina_a", vitA.toString())
+                putExtra("vitamina_c", vitC.toString())
                 putExtra("gramos", totalGrams.toString())
+            }.also { intent ->
+                setResult(Activity.RESULT_OK, intent)
+                finish()
             }
-
-            setResult(Activity.RESULT_OK, resultIntent)
-            finish()
         }
     }
 
     private fun updateValues() {
-        totalGrams = etTotalGrams.text.toString().toIntOrNull() ?: 0
-        if (totalGrams == 0) return
+        totalGrams = etTotalGrams.text.toString().toIntOrNull() ?: return
 
-        val protein = (proteinPer100g * totalGrams) / 100
-        val carbs = (carbsPer100g * totalGrams) / 100
-        val fats = (fatsPer100g * totalGrams) / 100
-        val vitaminA = (vitaminAPer100g * totalGrams) / 100
-        val vitaminC = (vitaminCPer100g * totalGrams) / 100
+        val protein  = proteinPer100g  * totalGrams / 100
+        val carbs    = carbsPer100g    * totalGrams / 100
+        val fats     = fatsPer100g     * totalGrams / 100
+        val vitA     = vitaminAPer100g * totalGrams / 100
+        val vitC     = vitaminCPer100g * totalGrams / 100
 
-        calculatedCalories = (protein * 4) + (carbs * 4) + (fats * 9)
+        calculatedCalories = protein * 4 + carbs * 4 + fats * 9
 
         etProtein.setText(protein.toString())
         etCarbs.setText(carbs.toString())
         etFats.setText(fats.toString())
-        etVitaminA.setText(vitaminA.toString())
-        etVitaminC.setText(vitaminC.toString())
-
+        etVitaminA.setText(vitA.toString())
+        etVitaminC.setText(vitC.toString())
         tvCalories.text = "Calorías: $calculatedCalories kcal"
     }
 }

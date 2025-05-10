@@ -20,7 +20,6 @@ class FoodAdapter(
         fun bind(food: FoodItem) {
             tvName.text = food.name
             tvCalories.text = "${food.calories} kcal"
-
             itemView.setOnLongClickListener {
                 onItemLongClick(food)
                 true

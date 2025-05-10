@@ -1,5 +1,6 @@
 package com.example.mealtracker.Activities
 
+import DBHelper
 import FoodItem
 import android.Manifest
 import android.annotation.SuppressLint
@@ -26,6 +27,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import android.provider.Settings
 
 class InicioActivity : AppCompatActivity() {
 
@@ -37,7 +39,6 @@ class InicioActivity : AppCompatActivity() {
     private lateinit var btnAddFood: Button
     private lateinit var tvCaloriesSummary: TextView
 
-    // Launcher for notification permission on Android 13+
     private val requestNotifPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             if (granted) scheduleDailyReminder()
@@ -47,34 +48,30 @@ class InicioActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.inicio_activity)
 
-        // Request POST_NOTIFICATIONS on Android 13+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            when {
-                ContextCompat.checkSelfPermission(
-                    this, Manifest.permission.POST_NOTIFICATIONS
-                ) == PackageManager.PERMISSION_GRANTED -> {
-                    // already granted
-                }
-                shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) -> {
-                    requestNotifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                }
-                else -> requestNotifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
-
+        // Initialize UI components
         rvFoodList = findViewById(R.id.rv_food_list)
         btnAddFood = findViewById(R.id.btn_add_food)
         tvCaloriesSummary = findViewById(R.id.tv_calories_summary)
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
+        // Database initialization
         dbHelper = DBHelper(this)
+
+        // Setup RecyclerView
         foodAdapter = FoodAdapter(emptyList()) { food -> showDeleteDialog(food) }
         rvFoodList.layoutManager = LinearLayoutManager(this)
         rvFoodList.adapter = foodAdapter
 
-        viewModel.foodList.observe(this) { foodAdapter.updateData(it) }
-        viewModel.totalCalories.observe(this) { updateCalorieSummary() }
+        // ViewModel observers
+        viewModel.foodList.observe(this) { foodList ->
+            foodAdapter.updateData(foodList)
+            updateCalorieSummary()
+        }
 
+        // Notification permission handling
+        handleNotificationPermission()
+
+        // Button click listeners
         btnAddFood.setOnClickListener {
             startActivityForResult(
                 Intent(this, AnadirComida::class.java),
@@ -84,31 +81,51 @@ class InicioActivity : AppCompatActivity() {
 
         tvCaloriesSummary.setOnClickListener {
             startActivity(
-                Intent(this, NutrientesDiarios::class.java)
-                    .putParcelableArrayListExtra(
+                Intent(this, NutrientesDiarios::class.java).apply {
+                    putParcelableArrayListExtra(
                         "food_list",
                         ArrayList(viewModel.foodList.value ?: emptyList())
                     )
+                }
             )
         }
 
+        // Bottom navigation setup
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.page_inicio -> true
                 R.id.page_perfil -> {
-                    startActivity(Intent(this, PerfilActivity::class.java)); finish(); true
+                    startActivity(Intent(this, PerfilActivity::class.java))
+                    finish()
+                    true
                 }
                 R.id.cambiar_dieta -> {
-                    startActivity(Intent(this, DietaActivity::class.java)); finish(); true
+                    startActivity(Intent(this, DietaActivity::class.java))
+                    finish()
+                    true
                 }
                 else -> false
             }
         }
 
-        // Load today’s foods
+        // Initial data load
         val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        dbHelper.cargarObjetivosNutricionales()?.let { g ->
+            viewModel.updateMacros(
+                protein  = g.protein,
+                carbs    = g.carbs,
+                fats     = g.fats,
+                vitaminA = g.vitaminA,
+                vitaminC = g.vitaminC
+            )
+            viewModel.updateCalories(g.calories)
+        }
         viewModel.setFoodList(dbHelper.obtenerAlimentosConsumidosPorFecha(todayStr))
-
+        viewModel.foodList.observe(this) { list ->
+            foodAdapter.updateData(list)
+            updateCalorieSummary()  //
+        }
+        // Schedule alarms
         scheduleMidnightReset()
         scheduleDailyReminder()
     }
@@ -136,10 +153,14 @@ class InicioActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle("¿Borrar entrada?")
             .setMessage("¿Deseas borrar \"${food.name}\"?")
-            .setPositiveButton("Borrar") { _, _ -> viewModel.removeFood(food) }
+            .setPositiveButton("Borrar") { _, _ ->
+                viewModel.removeFood(food)
+                dbHelper.eliminarAlimentoConsumidoPorId(food.id)
+            }
             .setNegativeButton("Cancelar", null)
             .show()
     }
+
 
     private fun updateCalorieSummary() {
         tvCaloriesSummary.text = viewModel.getCaloriesSummary()
@@ -153,8 +174,10 @@ class InicioActivity : AppCompatActivity() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val midnight = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
             add(Calendar.DATE, 1)
         }
         mgr.setExact(AlarmManager.RTC_WAKEUP, midnight.timeInMillis, pi)
@@ -164,7 +187,7 @@ class InicioActivity : AppCompatActivity() {
     private fun scheduleDailyReminder() {
         val mgr = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !mgr.canScheduleExactAlarms()) {
-            startActivity(Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM))
+            startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM))
             return
         }
         val pi = PendingIntent.getBroadcast(
@@ -173,8 +196,10 @@ class InicioActivity : AppCompatActivity() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val cal = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 10); set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+            set(Calendar.HOUR_OF_DAY, 10)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
             if (before(Calendar.getInstance())) add(Calendar.DAY_OF_YEAR, 1)
         }
         mgr.setAlarmClock(AlarmManager.AlarmClockInfo(cal.timeInMillis, pi), pi)
@@ -182,10 +207,23 @@ class InicioActivity : AppCompatActivity() {
 
     override fun onUserInteraction() {
         super.onUserInteraction()
-        getSharedPreferences("app_usage", MODE_PRIVATE)
-            .edit()
+        getSharedPreferences("app_usage", MODE_PRIVATE).edit()
             .putLong("last_interaction", System.currentTimeMillis())
             .apply()
+    }
+
+    private fun handleNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            when {
+                ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED -> {}
+                shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) -> {
+                    requestNotifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+                else -> requestNotifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
     }
 
     companion object {

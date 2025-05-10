@@ -51,7 +51,6 @@ class RegistrarseActivity : AppCompatActivity() {
 
             val nombre = editTextNombre.text.toString()
 
-            // Verificar que no exista un usuario con el mismo email
             db.collection("users").document(email).get()
                 .addOnFailureListener {
                     Toast.makeText(this, "Error al comprobar el usuario. Contacte con soporte.", Toast.LENGTH_SHORT).show()
@@ -62,7 +61,6 @@ class RegistrarseActivity : AppCompatActivity() {
                         return@addOnSuccessListener
                     }
 
-                    // Guardar los datos en Firestore
                     val data = hashMapOf(
                         "name" to nombre,
                         "email" to email,

@@ -1,5 +1,6 @@
 package com.example.mealtracker.Activities
 
+import DBHelper
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -20,16 +21,23 @@ class DietaActivity : AppCompatActivity() {
         dbHelper = DBHelper(this)
 
         val btnCalories = findViewById<Button>(R.id.btn_change_calories)
-        val btnProtein = findViewById<Button>(R.id.btn_change_protein)
-        val btnCarbs = findViewById<Button>(R.id.btn_change_carbs)
-        val btnFats = findViewById<Button>(R.id.btn_change_fats)
-        val btnVitA = findViewById<Button>(R.id.btn_change_vitamin_a)
-        val btnVitC = findViewById<Button>(R.id.btn_change_vitamin_c)
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        val btnProtein  = findViewById<Button>(R.id.btn_change_protein)
+        val btnCarbs    = findViewById<Button>(R.id.btn_change_carbs)
+        val btnFats     = findViewById<Button>(R.id.btn_change_fats)
+        val btnVitA     = findViewById<Button>(R.id.btn_change_vitamin_a)
+        val btnVitC     = findViewById<Button>(R.id.btn_change_vitamin_c)
+        val bottomNav   = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
-        dbHelper.cargarObjetivosNutricionales()?.let {
-            viewModel.updateMacros(it.protein, it.carbs, it.fats, it.vitaminA, it.vitaminC)
-            viewModel.updateCalories(it.calories)
+        // Carga objetivos de la BD
+        dbHelper.cargarObjetivosNutricionales()?.let { goals ->
+            viewModel.updateMacros(
+                protein  = goals.protein,
+                carbs    = goals.carbs,
+                fats     = goals.fats,
+                vitaminA = goals.vitaminA,
+                vitaminC = goals.vitaminC
+            )
+            viewModel.updateCalories(goals.calories)
         }
 
         btnCalories.setOnClickListener {
@@ -39,30 +47,25 @@ class DietaActivity : AppCompatActivity() {
                 saveToDB()
             }
         }
-
         btnProtein.setOnClickListener {
             val current = viewModel.goals.value?.protein ?: 0
-            showDialog("Proteínas (g)", current) { updateMacro(protein = it) }
+            showDialog("Proteínas (g)", current) { newVal -> updateMacro(protein = newVal) }
         }
-
         btnCarbs.setOnClickListener {
             val current = viewModel.goals.value?.carbs ?: 0
-            showDialog("Carbohidratos (g)", current) { updateMacro(carbs = it) }
+            showDialog("Carbohidratos (g)", current) { newVal -> updateMacro(carbs = newVal) }
         }
-
         btnFats.setOnClickListener {
             val current = viewModel.goals.value?.fats ?: 0
-            showDialog("Grasas (g)", current) { updateMacro(fats = it) }
+            showDialog("Grasas (g)", current) { newVal -> updateMacro(fats = newVal) }
         }
-
         btnVitA.setOnClickListener {
             val current = viewModel.goals.value?.vitaminA ?: 0
-            showDialog("Vitamina A (UI)", current) { updateMacro(vitA = it) }
+            showDialog("Vitamina A (UI)", current) { newVal -> updateMacro(vitA = newVal) }
         }
-
         btnVitC.setOnClickListener {
             val current = viewModel.goals.value?.vitaminC ?: 0
-            showDialog("Vitamina C (mg)", current) { updateMacro(vitC = it) }
+            showDialog("Vitamina C (mg)", current) { newVal -> updateMacro(vitC = newVal) }
         }
 
         bottomNav.setOnItemSelectedListener { item ->
@@ -81,36 +84,46 @@ class DietaActivity : AppCompatActivity() {
                 else -> false
             }
         }
-
-        bottomNav.selectedItemId = R.id.cambiar_dieta
+            bottomNav.selectedItemId = R.id.cambiar_dieta
     }
 
     private fun showDialog(title: String, current: Int, onConfirm: (Int) -> Unit) {
-        val dialog = DialogInputFragment(title, current, onConfirm)
-        dialog.show(supportFragmentManager, "DialogInput")
+        DialogInputFragment(title, current, onConfirm)
+            .show(supportFragmentManager, "DialogInput")
     }
 
     private fun updateMacro(
         protein: Int? = null,
-        carbs: Int? = null,
-        fats: Int? = null,
-        vitA: Int? = null,
-        vitC: Int? = null
+        carbs:   Int? = null,
+        fats:    Int? = null,
+        vitA:    Int? = null,
+        vitC:    Int? = null
     ) {
         val g = viewModel.goals.value ?: return
-        val newProtein = protein ?: g.protein
-        val newCarbs = carbs ?: g.carbs
-        val newFats = fats ?: g.fats
-        val newVitA = vitA ?: g.vitaminA
-        val newVitC = vitC ?: g.vitaminC
-        viewModel.updateMacros(newProtein, newCarbs, newFats, newVitA, newVitC)
+        viewModel.updateMacros(
+            protein  = protein ?: g.protein,
+            carbs    = carbs   ?: g.carbs,
+            fats     = fats    ?: g.fats,
+            vitaminA = vitA    ?: g.vitaminA,
+            vitaminC = vitC    ?: g.vitaminC
+        )
         saveToDB()
     }
 
     private fun saveToDB() {
-        val g = viewModel.goals.value ?: return
-        dbHelper.guardarObjetivosNutricionales(
-            g.calories, g.protein, g.carbs, g.fats, g.vitaminA, g.vitaminC
-        )
+        viewModel.goals.value?.let { g ->
+            dbHelper.guardarObjetivosNutricionales(
+                calorias     = g.calories,
+                proteinas    = g.protein,
+                carbohidratos= g.carbs,
+                grasas       = g.fats,
+                vitaminaA    = g.vitaminA,
+                vitaminaC    = g.vitaminC
+            )
+        }
     }
+
+    private fun navigateTo(cls: Class<*>) =
+        Intent(this, cls).also { startActivity(it); finish() }
+
 }

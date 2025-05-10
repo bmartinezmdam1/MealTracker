@@ -1,5 +1,6 @@
 package com.example.mealtracker.Activities
 
+import DBHelper
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle

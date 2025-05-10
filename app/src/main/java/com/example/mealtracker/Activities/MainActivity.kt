@@ -1,5 +1,6 @@
 package com.example.mealtracker.Activities
 
+import DBHelper
 import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -31,11 +32,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Inicializa la base de datos
         dbHelper = DBHelper(this)
         localDb = dbHelper.getWritableDb()
 
-        // Verifica si el usuario está logueado
         verificarSesion()
 
         // Inicializa los elementos de la UI
@@ -54,7 +53,6 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Por favor, completa todos los campos", Toast.LENGTH_SHORT).show()
             }
-            programarNotificacionDiaria()
 
         }
 
@@ -92,12 +90,10 @@ class MainActivity : AppCompatActivity() {
         val currentUser = auth.currentUser
 
         if (currentUser != null) {
-            // El usuario ya está logueado
             val email = currentUser.email ?: ""
-            val password = obtenerPasswordDesdeBaseDeDatos(email) // Recupera la contraseña de la base de datos
+            val password = obtenerPasswordDesdeBaseDeDatos(email) //
             comprobarUsuarioConAuth(email, password)
         } else {
-            // No hay usuario autenticado
             val cursor = localDb.rawQuery("SELECT email, contrasena FROM usuarios", null)
             if (cursor.moveToFirst()) {
                 val email = cursor.getString(cursor.getColumnIndexOrThrow("email"))
@@ -150,37 +146,5 @@ class MainActivity : AppCompatActivity() {
         } finally {
             localDb.endTransaction()
         }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.M)
-    @SuppressLint("ScheduleExactAlarm")
-    private fun programarNotificacionDiaria() {
-        val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
-        val intent = Intent(this, ReminderReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
-            this, 0, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val calendar = Calendar.getInstance().apply {
-            timeInMillis = System.currentTimeMillis()
-            set(Calendar.HOUR_OF_DAY, 6)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-
-            if (before(Calendar.getInstance())) {
-                add(Calendar.DATE, 1) // Si ya pasó hoy, programa para mañana
-            }
-        }
-
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            calendar.timeInMillis,
-            pendingIntent
-        )
-
-        // Para verificar que se programó bien (puedes quitarlo luego)
-        Log.d("Notificacion", "Notificación programada para: ${calendar.time}")
     }
 }

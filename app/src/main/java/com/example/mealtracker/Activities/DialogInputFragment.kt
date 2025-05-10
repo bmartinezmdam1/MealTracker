@@ -1,5 +1,6 @@
 package com.example.mealtracker.Activities
 
+import DBHelper
 import android.app.AlertDialog
 import android.app.Dialog
 import android.os.Bundle

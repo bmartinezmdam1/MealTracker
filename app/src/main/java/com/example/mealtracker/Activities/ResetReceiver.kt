@@ -1,5 +1,6 @@
 package com.example.mealtracker.Activities
 
+import DBHelper
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent

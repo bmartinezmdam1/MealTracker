@@ -1,5 +1,6 @@
 package com.example.mealtracker.Activities
 
+import DBHelper
 import FoodItem
 import android.os.Bundle
 import android.graphics.Color
