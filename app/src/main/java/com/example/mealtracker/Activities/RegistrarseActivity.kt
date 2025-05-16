@@ -53,7 +53,7 @@ class RegistrarseActivity : AppCompatActivity() {
 
             db.collection("users").document(email).get()
                 .addOnFailureListener {
-                    Toast.makeText(this, "Error al comprobar el usuario. Contacte con soporte.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Error al comprobar el usuario.", Toast.LENGTH_SHORT).show()
                 }
                 .addOnSuccessListener { document ->
                     if (document.exists()) {

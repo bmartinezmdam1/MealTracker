@@ -59,10 +59,11 @@ class ReminderReceiver : BroadcastReceiver() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel(
                 CHANNEL_ID,
-                "Meal Reminders",
+                "Recuerda contar tus calorías!",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Reminders to track your meals"
+
+                description = "No olvides contar tus calorías"
                 context.getSystemService(NotificationManager::class.java)
                     ?.createNotificationChannel(this)
             }

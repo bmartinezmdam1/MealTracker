@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "1082592228159",
-    "project_id": "mealtracker-1da99",
-    "storage_bucket": "mealtracker-1da99.firebasestorage.app"
+    "project_number": "95812401871",
+    "project_id": "mealtracker-4df63",
+    "storage_bucket": "mealtracker-4df63.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1082592228159:android:c205b2ba3595dbf423998a",
+        "mobilesdk_app_id": "1:95812401871:android:bbbca1c7177ab3cf3995ba",
         "android_client_info": {
           "package_name": "com.example.mealtracker"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDqCjoAKVsEN0rQoatGULbh8VEeEwfZ7HE"
+          "current_key": "AIzaSyCqF83yTuwI4o3gG1xj55GPL6MUHmbp2Nc"
         }
       ],
       "services": {
